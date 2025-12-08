@@ -1,6 +1,7 @@
 // src/modules/users/user.repo.ts
 import { prisma } from "../../db/prismaClient";
 import type { CreateUserInput, ListUsersParams } from "./user.types";
+import { Prisma } from "@prisma/client";
 
 export const userRepo = {
   async findPaginated(params: ListUsersParams) {
@@ -8,13 +9,28 @@ export const userRepo = {
 
     const skip = (page - 1) * pageSize;
 
-    const where =
+    const where: Prisma.UserWhereInput =
       search && search.trim().length > 0
         ? {
             OR: [
-              { email: { contains: search, mode: "insensitive" } },
-              { firstName: { contains: search, mode: "insensitive" } },
-              { lastName: { contains: search, mode: "insensitive" } },
+              {
+                email: {
+                  contains: search,
+                  mode: "insensitive" as Prisma.QueryMode,
+                },
+              },
+              {
+                firstName: {
+                  contains: search,
+                  mode: "insensitive" as Prisma.QueryMode,
+                },
+              },
+              {
+                lastName: {
+                  contains: search,
+                  mode: "insensitive" as Prisma.QueryMode,
+                },
+              },
             ],
           }
         : {};
