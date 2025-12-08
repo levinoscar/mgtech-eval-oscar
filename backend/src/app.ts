@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { userRouter } from "./modules/users/user.router";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger";
+import { authRouter } from "./modules/auth/auth.router";
 
 export const createApp = () => {
   const app = express();
@@ -24,8 +25,8 @@ export const createApp = () => {
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+  app.use("/auth", authRouter);
 
-  // mount feature modules
   app.use("/users", userRouter);
 
   // error handler should be last

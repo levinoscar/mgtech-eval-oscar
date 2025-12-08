@@ -117,6 +117,7 @@ Build a **Single Page Application (SPA)** that interacts with this backend API.
 ### Requirements
 
 - Use **Vue 3 (recommended)** or any modern JS framework
+- Use a component library of your choice
 - Implement:
   - Registration (`POST /auth/register`)
   - Login (JWT) (`POST /auth/login`)
