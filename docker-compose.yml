@@ -1,0 +1,41 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: evaluation_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
+      POSTGRES_DB: evaluation_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d evaluation_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: candidate_api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/usr/src/app/src
+      - ./backend/prisma:/usr/src/app/prisma
+      - ./backend/tsconfig.json:/usr/src/app/tsconfig.json
+      - ./backend/package.json:/usr/src/app/package.json
+    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+
+volumes:
+  db_data:
