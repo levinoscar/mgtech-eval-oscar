@@ -14,7 +14,7 @@ The base project includes:
 
 ### **Backend**
 - **Node.js + TypeScript**
-- **Express or Fastify** (depending on which the repo uses)
+- **Express or Fastify**
 - **Prisma ORM** (PostgreSQL)
 - **Router → Controller → Service → Repository architecture**
 - **Zod-based request validation**
@@ -24,9 +24,7 @@ The base project includes:
 - **Pino/Winston JSON logging**
 - **Environment variable validation**
 - **Dockerized local development**
-- **Jest or Vitest test framework**
-  - Unit tests
-  - Integration / API tests
+- **Jest or Vitest test framework** (unit + API tests)
 
 ### **Database**
 - PostgreSQL (via Docker)
@@ -39,40 +37,29 @@ A minimal Vue 3 scaffold may be provided, or you may build one yourself dependin
 
 # 🚀 Getting Started
 
-### **1. Clone the repository**
+### 1. Clone the repository
 ```bash
 git clone <your-fork-url>
 cd candidate-project
 ```
 
-### **2. Set up environment variables**
-Copy `.env.example` → `.env`:
-
+### 2. Set up environment variables
 ```bash
 cp .env.example .env
 ```
 
-Fill in required values.  
-All environment variables are validated at startup.
-
-### **3. Start the stack**
+### 3. Start the stack
 ```bash
 docker-compose up --build
 ```
 
-This will start:
-
-- API server  
-- PostgreSQL  
-- Prisma migrations & seed (if configured)
-
-API will be available at:
+API available at:
 
 ```
 http://localhost:3000
 ```
 
-Swagger docs:
+Swagger docs at:
 
 ```
 http://localhost:3000/docs
@@ -86,39 +73,18 @@ http://localhost:3000/docs
 backend/
   src/
     config/
-      env.ts
-      logger.ts
     db/
-      prismaClient.ts
     modules/
       auth/
-        auth.router.ts
-        auth.controller.ts
-        auth.service.ts
-        auth.repo.ts
-      contacts/
-        ...
-      companies/
-        ...
+      users/
+      ...
     middlewares/
-      errorHandler.ts
-      authGuard.ts
-      validation.ts
     common/
-      errors.ts
-      result.ts
-      pagination.ts
     tests/
-      unit/
-      integration/
     app.ts
     server.ts
 
 prisma/
-  schema.prisma
-  migrations/
-  seed.ts
-
 docker-compose.yml
 Dockerfile
 README.md
@@ -128,131 +94,152 @@ README.md
 
 # 📝 What You Will Be Evaluated On
 
-We are looking for:
-
-### ✔️ Correctness  
-Implementation that works, handles edge cases, and respects existing architecture.
-
-### ✔️ Code Quality  
-Readable, maintainable, modular TypeScript.
-
-### ✔️ Tests  
-Meaningful unit & integration tests that prove your implementation works as intended.
-
-### ✔️ API Design & Documentation  
-Endpoints documented and consistent with OpenAPI standards.
-
-### ✔️ Architecture Alignment  
-Router → controller → service → repository patterns followed consistently.
-
-### ✔️ Git Hygiene  
-Good commit messages, sensible PR structure, logical grouping of changes.
+- ✔️ **Correctness**
+- ✔️ **Code Quality**
+- ✔️ **Testing coverage & quality**
+- ✔️ **API design & documentation**
+- ✔️ **Architecture alignment**
+- ✔️ **Git hygiene & commits**
 
 ---
 
-# 🧪 Candidate Tasks
+# 🧪 Candidate Task Tracks
 
-Below are the tasks you should complete.  
-They are designed to reflect real work you might perform as part of our development team.
-
----
-
-## **Task 1 — Implement a Feature: Company Contacts Endpoint**
-
-Implement:
-
-```
-GET /companies/:companyId/contacts
-```
-
-Requirements:
-
-- Returns all contacts belonging to a company.
-- Supports pagination (`page`, `pageSize`).
-- Supports optional search (`q`) filtering by name or email.
-- Only authenticated users may access it.
-- Must respect the architecture:
-  - Router → Controller → Service → Repository
-- Must include:
-  - Zod validation for parameters
-  - Swagger documentation
-  - Unit tests for the service layer
-  - Integration tests for the route
+Choose **ONE** task track that best aligns with your background.  
+(You may complete more than one if you want to demonstrate broader capability.)
 
 ---
 
-## **Task 2 — Improve Validation & Error Handling**
+# 🎨 Track A — Frontend SPA Challenge (Frontend-Oriented Candidates)
 
-Extend the request validation for the endpoint:
+Build a **Single Page Application (SPA)** that interacts with this backend API.
 
-```
-POST /contacts
-```
+### Requirements
 
-Add:
+- Use **Vue 3 (recommended)** or any modern JS framework
+- Implement:
+  - Registration (`POST /auth/register`)
+  - Login (JWT) (`POST /auth/login`)
+  - Store & persist JWT
+  - `/auth/me` profile page
+  - User listing (`GET /users`)
+- Handle:
+  - Loading & error states
+  - Validation & API errors
+- UI expectations:
+  - Clean and functional UI
 
-- Proper zod validation on all fields
-- Friendly error messages
-- Correct 400 response shape
-- Swagger schema updates
-- Tests for invalid requests
+### Bonus
+- Router integration (Vue Router, React Router)
+- Reusable component structure
+- Search/filter users
 
-Goal: This endpoint should never return invalid or unhelpful errors.
-
----
-
-## **Task 3 — Authorization Enhancement**
-
-Add a new user role:
-
-```
-MANAGER
-```
-
-Rules:
-
-- ADMIN and MANAGER can delete companies.
-- Regular USER cannot.
-- Enforce at appropriate middleware/service layer.
-- Add tests proving unauthorized access is blocked.
+### Deliverables
+- `/frontend` folder or separate repo
+- README explaining setup & architecture
 
 ---
 
-## **(Optional) Task 4 — Frontend Mini-Challenge (Vue 3)**
+# 🛢️ Track B — Database & Migration Challenge (Backend/DB-Focused Candidates)
 
-If you choose to complete the frontend task:
+Choose **one** of the DB tasks below.
 
-Create a simple Vue 3 SPA that:
+---
 
-- Logs in a user
-- Displays paginated contacts from `GET /contacts`
-- Allows creating a new contact
-- Handles loading & error states
-- Uses Composition API
+## **Option B1 — PostgreSQL → MySQL Migration**
 
-This is optional unless specifically requested in your instructions.
+You will:
+
+1. Update Prisma schema to support MySQL
+2. Add MySQL to Docker Compose
+3. Update migrations to new SQL engine
+4. Adapt enum behavior, relations, and indexes
+5. Validate full API functionality post-migration
+
+This evaluates:
+
+- SQL engine knowledge  
+- Prisma migration expertise  
+- Infrastructure adaptation skills  
+
+---
+
+## **Option B2 — Add a New Module With Complex Relationships**
+
+Examples:
+- `Projects`
+- `Teams`
+- `Organizations`
+- `Locations`
+
+Your module must include:
+
+- 1-to-many and many-to-many relationships  
+- Composite unique keys  
+- Cascading or restricted delete rules  
+- Paginated list APIs  
+- Integration tests validating constraints  
+
+---
+
+# 🔌 Track C — API Expansion (Nested Data Model Track)
+
+Extend the API by adding a **nested relational model** tied to the `User` entity.
+
+### Examples:
+- `UserSettings`
+- `UserNotifications`
+- `UserSecurityLogs`
+- `UserProfiles`
+- `UserSessions`
+
+### Requirements
+
+1. Add new Prisma models + migration
+2. Create new module folder:
+   ```
+   settings/
+     settings.router.ts
+     settings.controller.ts
+     settings.service.ts
+     settings.repo.ts
+   ```
+3. Routes:
+   - `GET /users/:id/settings`
+   - `PUT /users/:id/settings`
+4. Zod validation
+5. Authorization rules:
+   - A user may only modify **their own** settings  
+   - ADMIN may modify any user
+6. Add Swagger documentation
+
+### Testing
+
+- Must include integration tests for:
+  - Access control (user vs admin)
+  - Upsert/update behavior  
 
 ---
 
 # 📤 Submitting Your Work
 
-1. **Create a fork** of this repository.  
-2. Do your work in a separate branch (e.g., `candidate/your-name`).  
-3. Open a PR *against your own fork* and send us the link.  
-4. Include a short write-up describing:
-   - Design choices
-   - Trade-offs
-   - Anything you would improve with more time
+1. Fork the repository  
+2. Create a feature branch (`candidate/<your-name>`)  
+3. Open a PR **to your own fork**  
+4. Include a write-up describing:
+   - Architecture decisions  
+   - Trade-offs you made  
+   - Improvements you'd make with more time  
 
 ---
 
 # 🙋 Need Clarification?
 
-If you believe requirements conflict, are ambiguous, or incomplete, note your assumptions in your write-up. Thoughtful clarification is part of the evaluation.
+If any task feels ambiguous, conflicting, or incomplete, document your assumptions.  
+Thoughtful reasoning is part of the evaluation.
 
 ---
 
 # 🎉 Good Luck!
 
-We look forward to reviewing your work.  
-Show us how you think, how you structure systems, and how you approach clean, maintainable engineering.
+We look forward to reviewing your work.
