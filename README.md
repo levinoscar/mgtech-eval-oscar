@@ -303,6 +303,86 @@ Implement a **separate seeding path** suitable for production-like environments:
 
 ---
 
+
+# 🧩 Track E — API Validation with Zod (Request Validation Challenge)
+
+Implement full **Zod-based validation** for the existing User API endpoints.
+
+This task evaluates your ability to:
+
+- Apply strong API input validation  
+- Produce consistent error responses  
+- Use schemas to simplify controller logic  
+- Enforce real-world request constraints  
+
+---
+
+## ✔️ Required Validations
+
+### 1. **`GET /users` — Query Parameters**
+
+Validate:
+
+- `page` — integer ≥ 1, default = 1  
+- `pageSize` — integer between 1 and 100, default = 20  
+- `search` — optional, trimmed string  
+
+Use:
+
+- `z.coerce.number()` for numeric coercion  
+- `default()` for fallback values  
+- `.min()` / `.max()` for constraints  
+- `validateQuery()` middleware for enforcement  
+
+---
+
+### 2. **User Creation (`POST /users` or `/auth/register`) — Request Body**
+
+Schema must validate:
+
+- `email` — required, valid email  
+- `password` — required, min length recommended  
+- `firstName` — optional  
+- `lastName` — optional  
+- `role` — optional, must be one of `USER | MANAGER | ADMIN`  
+
+Validation must:
+
+- Reject unexpected fields  
+- Produce structured JSON errors  
+- Ensure controllers only receive clean, typed data  
+
+---
+
+## ✔️ Deliverables
+
+- Create Zod schemas in:
+  ```
+  src/modules/users/user.validation.ts
+  ```
+- Integrate schemas into:
+  ```
+  user.router.ts
+  ```
+  using:
+  - `validateQuery(listUsersQuerySchema)`
+  - `validateBody(createUserBodySchema)`
+- Refactor controller to rely on parsed input
+- Ensure all validation errors return:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request",
+    "details": { ... }
+  }
+}
+```
+
+---
+
 # 📤 Submitting Your Work
 
 1. Fork the repository  
