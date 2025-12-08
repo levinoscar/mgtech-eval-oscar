@@ -1,11 +1,53 @@
+// src/modules/users/user.repo.ts
 import { prisma } from "../../db/prismaClient";
-import type { CreateUserInput } from "./user.types";
+import type { CreateUserInput, ListUsersParams } from "./user.types";
 
 export const userRepo = {
-  findAll() {
-    return prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+  async findPaginated(params: ListUsersParams) {
+    const { page, pageSize, search } = params;
+
+    const skip = (page - 1) * pageSize;
+
+    const where =
+      search && search.trim().length > 0
+        ? {
+            OR: [
+              { email: { contains: search, mode: "insensitive" } },
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {};
+
+    const [items, total] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize) || 1);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      search,
+    };
   },
 
   findByEmail(email: string) {
@@ -13,7 +55,6 @@ export const userRepo = {
   },
 
   create(data: CreateUserInput & { passwordHash: string }) {
-    const { password, ...rest } = data as any; // ensure plain password isn't persisted accidentally
     return prisma.user.create({
       data: {
         email: data.email,

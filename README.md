@@ -221,6 +221,88 @@ Extend the API by adding a **nested relational model** tied to the `User` entity
 
 ---
 
+# 🌱 Track D — Data Seeding & Fixtures Challenge (Seed Script-Focused Candidates)
+
+Implement a robust data seeding strategy for this project.
+
+### Requirements
+
+#### 1. Development seeding with Faker
+
+- Use **Faker.js** (or an equivalent library) to generate **hundreds of fake users** (for example 200–500).
+- Include a mix of roles:
+  - At least 1 `ADMIN`
+  - Some `MANAGER` users
+  - Many `USER` accounts
+- Ensure:
+  - Passwords are hashed using the existing auth/password utilities
+  - Emails are unique
+  - First/last names look realistic
+
+Suggested file:
+
+```bash
+prisma/seed.dev.ts
+```
+
+or
+
+```bash
+prisma/seed.ts
+```
+
+and a corresponding npm script, for example:
+
+```json
+"scripts": {
+  "prisma:seed": "ts-node prisma/seed.ts"
+}
+```
+
+#### 2. Production-safe seeding from a static file
+
+Implement a **separate seeding path** suitable for production-like environments:
+
+- Use a **static file** (JSON or CSV), for example:
+  - `prisma/seed.production.json`
+  - or `prisma/seed.production.csv`
+- Seed only a **small, curated set of records**, for example:
+  - One `ADMIN` account
+  - A few demo `USER` accounts
+- Requirements:
+  - Seeding must be **idempotent**:
+    - Do not create duplicate records if seed is re-run
+    - Use `upsert` or existence checks based on a stable key (e.g., email)
+  - Protect production from accidental bulk fake data:
+    - Use `NODE_ENV` or a dedicated env var (e.g. `SEED_MODE=development|production`)
+    - Ensure dev-only Faker-based seeding never runs in production
+
+#### 3. Logging & Reporting
+
+- After seeding, log a summary:
+  - Number of users created
+  - Number of users updated (if using upsert)
+  - Role breakdown (e.g., `ADMIN: 1, MANAGER: 5, USER: 300`)
+- Handle and log errors clearly.
+
+### Bonus
+
+- Seed additional related data once other modules exist (e.g., settings, projects).
+- Integrate seeding into Docker Compose or CI in a safe way.
+- Document how to run dev vs production seeding in the README.
+
+### Deliverables
+
+- Seed script(s) under `prisma/`
+- Static data file(s) for production-style seeding
+- Updated `package.json` scripts section
+- Short documentation section in the README explaining:
+  - How to run dev seeding
+  - How to run production seeding
+  - Any assumptions or trade-offs
+
+---
+
 # 📤 Submitting Your Work
 
 1. Fork the repository  
