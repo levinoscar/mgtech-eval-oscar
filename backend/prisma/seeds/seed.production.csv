@@ -1,0 +1,7 @@
+email,firstName,lastName,role,password
+admin@example.com,Ada,Lovelace,ADMIN,AdminPassword123
+manager.john@example.com,John,Schmidt,MANAGER,ManagerPass123
+manager.sara@example.com,Sara,Kim,MANAGER,ManagerPass456
+user.mike@example.com,Mike,Proctor,USER,UserPass123
+user.angela@example.com,Angela,Torres,USER,UserPass456
+user.dennis@example.com,Dennis,Bryant,USER,UserPass789
