@@ -105,9 +105,12 @@ README.md
 
 # 🧪 Candidate Task Tracks
 
-Choose **ONE** task track that best aligns with your background.  
+Choose **ONE** task track that best aligns with your background and the position mentioned in your welcome email.
+For example, if applying for a Backend Developer role, choose track B or D.
+
 (You may complete more than one if you want to demonstrate broader capability.)
 
+Note: This is only for evaluation. None of this code you submit will be merged or used for current projects.
 ---
 
 # 🎨 Track A — Frontend SPA Challenge (Frontend-Oriented Candidates)
