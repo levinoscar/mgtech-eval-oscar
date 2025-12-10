@@ -395,7 +395,9 @@ Validation must:
 4. Include a write-up describing:
    - Architecture decisions  
    - Trade-offs you made  
-   - Improvements you'd make with more time  
+   - Improvements you'd make with more time
+5. Add "mgtech-software" as a reviewer on your PR
+6. Reply to your initial email with a link to your PR
 
 ---
 
