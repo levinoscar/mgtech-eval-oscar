@@ -1,29 +1,105 @@
 import request from "supertest";
 import { createApp } from "../../app";
+import { prisma } from "../../db/prismaClient";
 
 const app = createApp();
 
 describe("Users API integration", () => {
-  it("should return 200 and a paginated users response", async () => {
-    const res = await request(app).get("/users");
+  // Unique email so the test can be re-run cleanly.
+  const createdEmail = `user.create+${Date.now()}@example.com`;
 
-    expect(res.status).toBe(200);
+  afterAll(async () => {
+    await prisma.user.deleteMany({ where: { email: createdEmail } });
+    await prisma.$disconnect();
+  });
 
-    expect(res.body).toMatchObject({
-      success: true,
-      data: expect.any(Array),
-      meta: {
-        page: expect.any(Number),
-        pageSize: expect.any(Number),
-        total: expect.any(Number),
-        totalPages: expect.any(Number),
-      },
+  describe("GET /users", () => {
+    it("returns 200 and a paginated users response with defaults", async () => {
+      const res = await request(app).get("/users");
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        success: true,
+        data: expect.any(Array),
+        meta: {
+          page: 1,
+          pageSize: 20,
+          total: expect.any(Number),
+          totalPages: expect.any(Number),
+        },
+      });
     });
 
-    // Optional: more strict checks
-    const { meta } = res.body;
-    expect(meta.page).toBeGreaterThanOrEqual(1);
-    expect(meta.pageSize).toBeGreaterThanOrEqual(1);
-    expect(meta.totalPages).toBeGreaterThanOrEqual(1);
+    it("rejects a non-numeric page with 400 VALIDATION_ERROR", async () => {
+      const res = await request(app).get("/users?page=banana");
+
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({
+        success: false,
+        error: { code: "VALIDATION_ERROR" },
+      });
+    });
+
+    it("rejects a pageSize over the max of 100", async () => {
+      const res = await request(app).get("/users?pageSize=9999");
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    });
+  });
+
+  describe("POST /users", () => {
+    it("creates a user (201) and never returns the password hash", async () => {
+      const res = await request(app).post("/users").send({
+        email: createdEmail,
+        password: "password123",
+        firstName: "Create",
+        lastName: "Tester",
+        role: "MANAGER",
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toMatchObject({
+        success: true,
+        data: {
+          email: createdEmail,
+          role: "MANAGER",
+        },
+      });
+      // Critical: the hash must not leak to clients.
+      expect(res.body.data.passwordHash).toBeUndefined();
+    });
+
+    it("rejects an invalid role and unexpected fields with 400", async () => {
+      const res = await request(app).post("/users").send({
+        email: "bad.role@example.com",
+        password: "password123",
+        role: "KING",
+        isAdmin: true,
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("rejects a too-short password with 400", async () => {
+      const res = await request(app).post("/users").send({
+        email: "short.pw@example.com",
+        password: "123",
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("returns 409 when the email already exists", async () => {
+      const res = await request(app).post("/users").send({
+        email: createdEmail, // created in the test above
+        password: "password123",
+      });
+
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe("EMAIL_TAKEN");
+    });
   });
 });

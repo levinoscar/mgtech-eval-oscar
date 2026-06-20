@@ -1,10 +1,13 @@
 // src/modules/users/user.service.ts
+import bcrypt from "bcryptjs";
 import { userRepo } from "./user.repo";
-import type { CreateUserInput, ListUsersParams, PaginatedUsersResult } from "./user.types";
+import type { ListUsersParams, PaginatedUsersResult } from "./user.types";
+import type { CreateUserBody } from "./user.validation";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
+const SALT_ROUNDS = 10;
 
 export const userService = {
   async listUsers(params: Partial<ListUsersParams> = {}): Promise<PaginatedUsersResult> {
@@ -26,8 +29,7 @@ export const userService = {
     return result;
   },
 
-  // likely used internally for seeding / admin creation paths
-  async createUser(input: CreateUserInput & { passwordHash: string }) {
+  async createUser(input: CreateUserBody) {
     const existing = await userRepo.findByEmail(input.email);
     if (existing) {
       const error: any = new Error("Email already in use");
@@ -36,6 +38,15 @@ export const userService = {
       throw error;
     }
 
-    return userRepo.create(input);
+    // Never store the raw password — hash it first.
+    const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
+
+    return userRepo.create({
+      email: input.email,
+      passwordHash,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      role: input.role, // undefined -> Prisma applies the USER default
+    });
   },
 };
