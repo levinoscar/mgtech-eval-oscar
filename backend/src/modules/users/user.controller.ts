@@ -1,15 +1,13 @@
 // src/modules/users/user.controller.ts
 import type { Request, Response, NextFunction } from "express";
 import { userService } from "./user.service";
+import type { ListUsersQuery, CreateUserBody } from "./user.validation";
 
 export const userController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
-      const pageSize = req.query.pageSize
-        ? parseInt(String(req.query.pageSize), 10)
-        : undefined;
-      const search = req.query.search ? String(req.query.search) : undefined;
+      // validateQuery has already coerced + defaulted these values.
+      const { page, pageSize, search } = req.query as unknown as ListUsersQuery;
 
       const result = await userService.listUsers({ page, pageSize, search });
 
@@ -29,19 +27,12 @@ export const userController = {
     }
   },
 
-  // if you still expose POST /users, keep this; otherwise you might only use auth/register
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, passwordHash, firstName, lastName, role } = req.body;
+      // validateBody guarantees a clean, typed body here.
+      const body = req.body as CreateUserBody;
 
-      const user = await userService.createUser({
-        email,
-        password: "", // not used, but CreateUserInput includes password; service uses passwordHash here
-        firstName,
-        lastName,
-        role,
-        passwordHash,
-      });
+      const user = await userService.createUser(body);
 
       res.status(201).json({ success: true, data: user });
     } catch (err) {

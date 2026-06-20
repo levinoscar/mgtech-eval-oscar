@@ -1,7 +1,7 @@
 // src/modules/users/user.repo.ts
 import { prisma } from "../../db/prismaClient";
-import type { CreateUserInput, ListUsersParams } from "./user.types";
-import { Prisma } from "@prisma/client";
+import type { ListUsersParams } from "./user.types";
+import { Prisma, type Role } from "@prisma/client";
 
 export const userRepo = {
   async findPaginated(params: ListUsersParams) {
@@ -70,7 +70,13 @@ export const userRepo = {
     return prisma.user.findUnique({ where: { email } });
   },
 
-  create(data: CreateUserInput & { passwordHash: string }) {
+  create(data: {
+    email: string;
+    passwordHash: string;
+    firstName?: string;
+    lastName?: string;
+    role?: Role;
+  }) {
     return prisma.user.create({
       data: {
         email: data.email,
@@ -78,6 +84,16 @@ export const userRepo = {
         firstName: data.firstName,
         lastName: data.lastName,
         role: data.role,
+      },
+      // Never return the password hash to callers.
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   },
