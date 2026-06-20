@@ -5,11 +5,14 @@ import { prisma } from "../../db/prismaClient";
 const app = createApp();
 
 describe("Users API integration", () => {
-  // Unique email so the test can be re-run cleanly.
+  // Unique emails so the tests can be re-run cleanly and stay independent.
   const createdEmail = `user.create+${Date.now()}@example.com`;
+  const dupEmail = `user.dup+${Date.now()}@example.com`;
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: createdEmail } });
+    await prisma.user.deleteMany({
+      where: { email: { in: [createdEmail, dupEmail] } },
+    });
     await prisma.$disconnect();
   });
 
@@ -49,13 +52,12 @@ describe("Users API integration", () => {
   });
 
   describe("POST /users", () => {
-    it("creates a user (201) and never returns the password hash", async () => {
+    it("creates a user (201) with the default USER role and never returns the password hash", async () => {
       const res = await request(app).post("/users").send({
         email: createdEmail,
         password: "password123",
         firstName: "Create",
         lastName: "Tester",
-        role: "MANAGER",
       });
 
       expect(res.status).toBe(201);
@@ -63,18 +65,18 @@ describe("Users API integration", () => {
         success: true,
         data: {
           email: createdEmail,
-          role: "MANAGER",
+          role: "USER", // role is not settable via this endpoint
         },
       });
       // Critical: the hash must not leak to clients.
       expect(res.body.data.passwordHash).toBeUndefined();
     });
 
-    it("rejects an invalid role and unexpected fields with 400", async () => {
+    it("rejects a caller-supplied role and unexpected fields with 400", async () => {
       const res = await request(app).post("/users").send({
         email: "bad.role@example.com",
         password: "password123",
-        role: "KING",
+        role: "ADMIN", // not an accepted field -> rejected by .strict()
         isAdmin: true,
       });
 
@@ -93,8 +95,15 @@ describe("Users API integration", () => {
     });
 
     it("returns 409 when the email already exists", async () => {
+      // Self-contained: create the user here rather than relying on a prior test.
+      const first = await request(app).post("/users").send({
+        email: dupEmail,
+        password: "password123",
+      });
+      expect(first.status).toBe(201);
+
       const res = await request(app).post("/users").send({
-        email: createdEmail, // created in the test above
+        email: dupEmail,
         password: "password123",
       });
 

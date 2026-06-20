@@ -21,6 +21,12 @@ export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 //
 // `.strict()` makes the schema reject any field we did not explicitly list,
 // so callers can't sneak in unexpected properties.
+//
+// Note: `role` is intentionally NOT accepted here. This endpoint is public,
+// so allowing a caller to set their own role would be a privilege-escalation
+// path (anyone could create an ADMIN). New users always get the default USER
+// role — same policy as /auth/register. Admin-driven role assignment belongs
+// to the (auth-gated) RBAC track.
 // ---------------------------------------------------------------------------
 export const createUserBodySchema = z
   .object({
@@ -28,7 +34,6 @@ export const createUserBodySchema = z
     password: z.string().min(8, "Password must be at least 8 characters long"),
     firstName: z.string().trim().min(1).optional(),
     lastName: z.string().trim().min(1).optional(),
-    role: z.enum(["USER", "MANAGER", "ADMIN"]).optional(),
   })
   .strict();
 

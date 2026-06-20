@@ -46,7 +46,7 @@ export const userService = {
       passwordHash,
       firstName: input.firstName,
       lastName: input.lastName,
-      role: input.role, // undefined -> Prisma applies the USER default
+      // role is not settable via this public endpoint -> Prisma applies USER.
     });
   },
 };
