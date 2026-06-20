@@ -34,8 +34,9 @@ services:
       - ./backend/src:/usr/src/app/src
       - ./backend/prisma:/usr/src/app/prisma
       - ./backend/tsconfig.json:/usr/src/app/tsconfig.json
+      - ./backend/jest.config.cjs:/usr/src/app/jest.config.cjs
       - ./backend/package.json:/usr/src/app/package.json
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
 volumes:
   db_data:

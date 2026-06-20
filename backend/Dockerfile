@@ -8,6 +8,7 @@ RUN npm install
 
 # Copy the rest of the app (ts, prisma, configs)
 COPY tsconfig.json ./
+COPY jest.config.cjs ./
 COPY prisma ./prisma
 COPY src ./src
 
