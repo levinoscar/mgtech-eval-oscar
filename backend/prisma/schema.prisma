@@ -13,6 +13,12 @@ enum Role {
   ADMIN
 }
 
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -21,6 +27,22 @@ model User {
   lastName     String?
   role         Role     @default(USER)
 
+  settings     UserSettings?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model UserSettings {
+  id                 String   @id @default(cuid())
+  // One settings row per user. @unique enforces the 1-to-1 relationship.
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  theme              Theme    @default(SYSTEM)
+  language           String   @default("en")
+  emailNotifications Boolean  @default(true)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

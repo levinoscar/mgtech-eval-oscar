@@ -54,6 +54,37 @@ export const requireAuth = (
   }
 };
 
+// Allows the request only if the authenticated user is acting on their own
+// resource (req.params[paramName] === their id) OR is an ADMIN.
+// Must run after requireAuth.
+export const requireSelfOrAdmin = (paramName = "userId") => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        },
+      });
+    }
+
+    const targetUserId = req.params[paramName];
+
+    if (req.user.role === "ADMIN" || req.user.id === targetUserId) {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: "FORBIDDEN",
+        message: "You can only access your own settings",
+      },
+    });
+  };
+};
+
 export const requireRole = (roles: Role[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
