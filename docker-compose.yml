@@ -1,22 +1,23 @@
 
 services:
   db:
-    image: postgres:16
+    image: mysql:8
     container_name: evaluation_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app_user
-      POSTGRES_PASSWORD: app_password
-      POSTGRES_DB: evaluation_db
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: evaluation_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app_user -d evaluation_db"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_password"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 15
 
   api:
     build:
