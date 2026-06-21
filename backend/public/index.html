@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evaluation App</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        margin: 0;
+        background: #f4f6f8;
+        color: #1a2027;
+      }
+      header {
+        background: #1f2937;
+        color: #fff;
+        padding: 14px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      header h1 { font-size: 18px; margin: 0; }
+      main { max-width: 760px; margin: 32px auto; padding: 0 16px; }
+      .card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 24px;
+      }
+      .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+      .tabs button {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      .tabs button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+      label { display: block; font-size: 13px; margin: 12px 0 4px; font-weight: 600; }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      button.primary {
+        margin-top: 18px;
+        width: 100%;
+        padding: 11px;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      button.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+      .error {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin-top: 14px;
+        font-size: 14px;
+      }
+      .muted { color: #6b7280; font-size: 13px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+      th { color: #6b7280; font-weight: 600; }
+      .row-flex { display: flex; gap: 8px; align-items: center; }
+      .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e0e7ff; color: #3730a3; }
+      .secondary {
+        padding: 8px 12px; background: #fff; border: 1px solid #d1d5db;
+        border-radius: 6px; cursor: pointer; font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Evaluation App</h1>
+      <button
+        id="logout-btn"
+        class="secondary"
+        data-testid="logout-button"
+        style="display: none"
+      >
+        Log out
+      </button>
+    </header>
+
+    <main>
+      <!-- AUTH VIEW -->
+      <section id="auth-view" class="card" data-testid="auth-view">
+        <div class="tabs">
+          <button id="tab-login" class="active" data-testid="tab-login">Login</button>
+          <button id="tab-register" data-testid="tab-register">Register</button>
+        </div>
+
+        <form id="login-form" data-testid="login-form">
+          <label>Email</label>
+          <input type="email" id="login-email" data-testid="login-email" />
+          <label>Password</label>
+          <input type="password" id="login-password" data-testid="login-password" />
+          <button class="primary" type="submit" data-testid="login-submit">Log in</button>
+        </form>
+
+        <form id="register-form" data-testid="register-form" style="display: none">
+          <label>Email</label>
+          <input type="email" id="reg-email" data-testid="register-email" />
+          <label>Password</label>
+          <input type="password" id="reg-password" data-testid="register-password" />
+          <label>First name</label>
+          <input type="text" id="reg-first" data-testid="register-firstname" />
+          <label>Last name</label>
+          <input type="text" id="reg-last" data-testid="register-lastname" />
+          <button class="primary" type="submit" data-testid="register-submit">Create account</button>
+        </form>
+
+        <div id="auth-error" class="error" data-testid="auth-error" style="display: none"></div>
+      </section>
+
+      <!-- APP VIEW -->
+      <section id="app-view" style="display: none" data-testid="app-view">
+        <div class="card">
+          <h2>My profile</h2>
+          <div id="profile" data-testid="profile" class="muted">Loading…</div>
+        </div>
+
+        <div class="card">
+          <div class="row-flex" style="justify-content: space-between">
+            <h2 style="margin: 0">Users</h2>
+            <div class="row-flex">
+              <input
+                type="text"
+                id="search"
+                placeholder="Search users…"
+                data-testid="user-search"
+                style="width: 200px"
+              />
+              <button class="secondary" id="search-btn" data-testid="user-search-button">Search</button>
+            </div>
+          </div>
+          <div id="users-status" class="muted" data-testid="users-status"></div>
+          <table>
+            <thead>
+              <tr><th>Email</th><th>Name</th><th>Role</th></tr>
+            </thead>
+            <tbody id="users-body" data-testid="users-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // Minimal SPA: no framework, talks to the same-origin API.
+      const TOKEN_KEY = "eval_token";
+      const $ = (id) => document.getElementById(id);
+
+      const state = {
+        get token() { return localStorage.getItem(TOKEN_KEY); },
+        set token(v) {
+          if (v) localStorage.setItem(TOKEN_KEY, v);
+          else localStorage.removeItem(TOKEN_KEY);
+        },
+      };
+
+      async function api(path, { method = "GET", body, auth = false } = {}) {
+        const headers = { "Content-Type": "application/json" };
+        if (auth && state.token) headers.Authorization = `Bearer ${state.token}`;
+        const res = await fetch(path, {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = json?.error?.message || `Request failed (${res.status})`;
+          throw new Error(msg);
+        }
+        return json;
+      }
+
+      function showError(msg) {
+        const el = $("auth-error");
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+      function clearError() {
+        $("auth-error").style.display = "none";
+      }
+
+      function render() {
+        const loggedIn = !!state.token;
+        $("auth-view").style.display = loggedIn ? "none" : "block";
+        $("app-view").style.display = loggedIn ? "block" : "none";
+        $("logout-btn").style.display = loggedIn ? "inline-block" : "none";
+        if (loggedIn) {
+          loadProfile();
+          loadUsers();
+        }
+      }
+
+      // ---- Tab switching ----
+      $("tab-login").onclick = () => {
+        $("tab-login").classList.add("active");
+        $("tab-register").classList.remove("active");
+        $("login-form").style.display = "block";
+        $("register-form").style.display = "none";
+        clearError();
+      };
+      $("tab-register").onclick = () => {
+        $("tab-register").classList.add("active");
+        $("tab-login").classList.remove("active");
+        $("register-form").style.display = "block";
+        $("login-form").style.display = "none";
+        clearError();
+      };
+
+      // ---- Auth actions ----
+      $("login-form").onsubmit = async (e) => {
+        e.preventDefault();
+        clearError();
+        const btn = $("login-form").querySelector("button");
+        btn.disabled = true;
+        try {
+          const res = await api("/auth/login", {
+            method: "POST",
+            body: { email: $("login-email").value, password: $("login-password").value },
+          });
+          state.token = res.data.tokens.accessToken;
+          render();
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      $("register-form").onsubmit = async (e) => {
+        e.preventDefault();
+        clearError();
+        const btn = $("register-form").querySelector("button");
+        btn.disabled = true;
+        try {
+          const body = { email: $("reg-email").value, password: $("reg-password").value };
+          if ($("reg-first").value) body.firstName = $("reg-first").value;
+          if ($("reg-last").value) body.lastName = $("reg-last").value;
+          const res = await api("/auth/register", { method: "POST", body });
+          state.token = res.data.tokens.accessToken;
+          render();
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      $("logout-btn").onclick = () => {
+        state.token = null;
+        // Reset to a clean login view so the user can sign back in.
+        $("tab-login").classList.add("active");
+        $("tab-register").classList.remove("active");
+        $("login-form").style.display = "block";
+        $("register-form").style.display = "none";
+        clearError();
+        render();
+      };
+
+      // ---- Authenticated data ----
+      async function loadProfile() {
+        const el = $("profile");
+        el.textContent = "Loading…";
+        try {
+          const res = await api("/auth/me", { auth: true });
+          const u = res.data;
+          el.innerHTML = `<strong data-testid="profile-email">${u.email}</strong>
+            <span class="badge" data-testid="profile-role">${u.role}</span><br/>
+            <span class="muted">${u.firstName || ""} ${u.lastName || ""}</span>`;
+        } catch (err) {
+          // token invalid/expired -> back to auth
+          state.token = null;
+          render();
+        }
+      }
+
+      async function loadUsers(search = "") {
+        const status = $("users-status");
+        const body = $("users-body");
+        status.textContent = "Loading…";
+        body.innerHTML = "";
+        try {
+          const q = search ? `?search=${encodeURIComponent(search)}` : "";
+          const res = await api(`/users${q}`, { auth: true });
+          status.textContent = `${res.meta.total} user(s)`;
+          body.innerHTML = res.data
+            .map(
+              (u) => `<tr data-testid="user-row">
+                <td data-testid="user-email">${u.email}</td>
+                <td>${(u.firstName || "") + " " + (u.lastName || "")}</td>
+                <td><span class="badge">${u.role}</span></td>
+              </tr>`
+            )
+            .join("");
+        } catch (err) {
+          status.textContent = "Failed to load users: " + err.message;
+        }
+      }
+
+      $("search-btn").onclick = () => loadUsers($("search").value.trim());
+
+      // initial paint
+      render();
+    </script>
+  </body>
+</html>

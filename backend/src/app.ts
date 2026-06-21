@@ -1,5 +1,6 @@
 import express from "express";
 import { json } from "express";
+import path from "path";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -23,6 +24,9 @@ export const createApp = () => {
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
   });
+
+  // Serve the minimal SPA (same origin as the API -> no CORS needed)
+  app.use("/app", express.static(path.join(__dirname, "..", "public")));
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
