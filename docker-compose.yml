@@ -32,6 +32,7 @@ services:
       - "3000:3000"
     volumes:
       - ./backend/src:/usr/src/app/src
+      - ./backend/public:/usr/src/app/public
       - ./backend/prisma:/usr/src/app/prisma
       - ./backend/tsconfig.json:/usr/src/app/tsconfig.json
       - ./backend/jest.config.cjs:/usr/src/app/jest.config.cjs

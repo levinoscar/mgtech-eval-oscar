@@ -10,6 +10,7 @@ RUN npm install
 COPY tsconfig.json ./
 COPY jest.config.cjs ./
 COPY prisma ./prisma
+COPY public ./public
 COPY src ./src
 
 EXPOSE 3000
