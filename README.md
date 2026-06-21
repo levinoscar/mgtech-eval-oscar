@@ -67,6 +67,44 @@ http://localhost:3000/docs
 
 ---
 
+# 🌱 Database Seeding
+
+Two seeding paths are provided. Run them inside the API container (so they use
+the same database connection as the app):
+
+### Development seeding (Faker)
+Generates ~300 realistic fake users with a role mix (1 ADMIN, ~14 MANAGERs, the
+rest USERs). All generated users share the password `Password123!`.
+
+```bash
+docker compose exec api npm run prisma:seed:dev
+```
+
+This script **refuses to run** when `NODE_ENV=production` or
+`SEED_MODE=production`, so fake data can never reach a production database.
+
+### Production-safe seeding (static file)
+Seeds a small, curated set of accounts from `prisma/seeds/seed.production.csv`
+(one ADMIN + a few demo accounts). It is **idempotent** — matching on `email`,
+it updates existing rows instead of creating duplicates, so it is safe to run
+repeatedly.
+
+```bash
+docker compose exec api npm run prisma:seed
+```
+
+Each run prints a summary: number created, number updated, and a role breakdown.
+
+### Notes & trade-offs
+- Both scripts hash passwords with the shared `src/common/password.ts` utility,
+  so seeded credentials work with the normal login flow.
+- The dev seeder reuses a single password hash across all users for speed; the
+  production seeder hashes each curated password individually.
+- To seed curated data, edit `prisma/seeds/seed.production.csv`
+  (columns: `email,firstName,lastName,role,password`).
+
+---
+
 # 📂 Project Structure
 
 ```
