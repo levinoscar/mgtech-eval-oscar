@@ -1,12 +1,10 @@
 // src/modules/auth/auth.service.ts
-import bcrypt from "bcryptjs";
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import { prisma } from "../../db/prismaClient";
 import { env } from "../../config/env";
+import { hashPassword, comparePassword } from "../../common/password";
 import type { RegisterBody, LoginBody } from "./auth.validation";
 import type { AuthTokenPayload, AuthTokens, AuthUser } from "./auth.types";
-
-const SALT_ROUNDS = 10;
 
 function signToken(payload: AuthTokenPayload): AuthTokens {
   const options: SignOptions = {
@@ -37,7 +35,7 @@ export const authService = {
       throw err;
     }
 
-    const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
+    const passwordHash = await hashPassword(data.password);
 
     const user = await prisma.user.create({
       data: {
@@ -73,7 +71,7 @@ export const authService = {
       throw err;
     }
 
-    const isValid = await bcrypt.compare(data.password, user.passwordHash);
+    const isValid = await comparePassword(data.password, user.passwordHash);
 
     if (!isValid) {
       const err: any = new Error("Invalid email or password");

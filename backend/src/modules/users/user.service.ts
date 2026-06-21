@@ -1,13 +1,12 @@
 // src/modules/users/user.service.ts
-import bcrypt from "bcryptjs";
 import { userRepo } from "./user.repo";
+import { hashPassword } from "../../common/password";
 import type { ListUsersParams, PaginatedUsersResult } from "./user.types";
 import type { CreateUserBody } from "./user.validation";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
-const SALT_ROUNDS = 10;
 
 export const userService = {
   async listUsers(params: Partial<ListUsersParams> = {}): Promise<PaginatedUsersResult> {
@@ -39,7 +38,7 @@ export const userService = {
     }
 
     // Never store the raw password — hash it first.
-    const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
+    const passwordHash = await hashPassword(input.password);
 
     return userRepo.create({
       email: input.email,
