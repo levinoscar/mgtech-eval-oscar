@@ -7,6 +7,7 @@ import { userRouter } from "./modules/users/user.router";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger";
 import { authRouter } from "./modules/auth/auth.router";
+import { settingsRouter } from "./modules/settings/settings.router";
 
 export const createApp = () => {
   const app = express();
@@ -28,6 +29,9 @@ export const createApp = () => {
   app.use("/auth", authRouter);
 
   app.use("/users", userRouter);
+
+  // Nested settings routes: /users/:userId/settings
+  app.use("/users/:userId/settings", settingsRouter);
 
   // error handler should be last
   app.use(errorHandler);

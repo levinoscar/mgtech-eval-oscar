@@ -36,6 +36,29 @@ export const swaggerSpec = {
           updatedAt: { type: "string", format: "date-time" },
         },
       },
+      UserSettings: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "ckv123..." },
+          userId: { type: "string", example: "ckvuser..." },
+          theme: {
+            type: "string",
+            enum: ["LIGHT", "DARK", "SYSTEM"],
+            example: "SYSTEM",
+          },
+          language: { type: "string", example: "en" },
+          emailNotifications: { type: "boolean", example: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      SettingsResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          data: { $ref: "#/components/schemas/UserSettings" },
+        },
+      },
       PaginatedUsersResponse: {
         type: "object",
         properties: {
@@ -309,6 +332,134 @@ export const swaggerSpec = {
           },
           401: {
             description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/users/{userId}/settings": {
+      get: {
+        tags: ["Settings"],
+        summary: "Get a user's settings",
+        description:
+          "Returns the user's settings (creating defaults on first read). A user may only read their own settings; ADMINs may read anyone's.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "userId",
+            required: true,
+            schema: { type: "string" },
+            description: "ID of the user whose settings to fetch.",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Settings returned",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/SettingsResponse" },
+              },
+            },
+          },
+          401: {
+            description: "Missing or invalid JWT",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          403: {
+            description: "Not allowed to access these settings",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          404: {
+            description: "User not found",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ["Settings"],
+        summary: "Update a user's settings",
+        description:
+          "Creates or updates the user's settings (upsert). A user may only update their own settings; ADMINs may update anyone's.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "userId",
+            required: true,
+            schema: { type: "string" },
+            description: "ID of the user whose settings to update.",
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  theme: {
+                    type: "string",
+                    enum: ["LIGHT", "DARK", "SYSTEM"],
+                  },
+                  language: { type: "string", example: "en" },
+                  emailNotifications: { type: "boolean", example: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Settings updated",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/SettingsResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          401: {
+            description: "Missing or invalid JWT",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          403: {
+            description: "Not allowed to modify these settings",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          404: {
+            description: "User not found",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorResponse" },

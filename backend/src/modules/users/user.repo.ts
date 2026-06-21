@@ -66,6 +66,10 @@ export const userRepo = {
     };
   },
 
+  findById(id: string) {
+    return prisma.user.findUnique({ where: { id } });
+  },
+
   findByEmail(email: string) {
     return prisma.user.findUnique({ where: { email } });
   },
